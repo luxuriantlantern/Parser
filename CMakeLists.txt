@@ -12,8 +12,16 @@ add_executable(parser_gen
     parser_gen.c
 )
 
+add_executable(test
+    parser_gen.c
+    test.c
+)
+
 # 头文件所在目录（当前源码根目录）
 target_include_directories(parser_gen PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+target_include_directories(test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)

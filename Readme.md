@@ -1,3 +1,5 @@
+### 这是SJTU CS2612, 2025fall, project Parser
+
 语法分析器，根据上下文无关语法生成语法分析器
 
 - 依据输入的上下文无关语法计算 first 集合与 follow 集合
