@@ -22,54 +22,112 @@ int is_ok_follow[MAX_NUMBER_OF_SYMB];
 int vis_first[MAX_NUMBER_OF_SYMB];
 int vis_follow[MAX_NUMBER_OF_SYMB];
 
-// E F + -> 0 1 2
-// E -> E + F
-// E -> F
+static int init_rhs[MAX_NUMBER_OF_PROD][MAX_NUMBER_OF_STATE];
+
+void initialize_grammar1()
+{
+    number_of_symb = 3;
+    // E F +
+    // 0 1 2
+    number_of_prod = 2;
+    init_rhs[0][0] = 0; init_rhs[0][1] = 2; init_rhs[0][2] = 1;
+    init_rhs[1][0] = 1;
+    grammar[0] = (struct prod){ .l = 0, .r = init_rhs[0], .len = 3 }; // E -> E + F
+    grammar[1] = (struct prod){ .l = 0, .r = init_rhs[1], .len = 1}; // E -> F
+    initialize(number_of_symb, 0);
+}
+
+void initialize_grammar2()
+{
+    number_of_symb = 8;
+    // E F G ID + * ( )
+    // 0 1 2 3  4 5 6 7
+    number_of_prod = 6;
+    init_rhs[0][0] = 0; init_rhs[0][1] = 4; init_rhs[0][2] = 1;
+    init_rhs[1][0] = 1;
+    init_rhs[2][0] = 1; init_rhs[2][1] = 5; init_rhs[2][2] = 2;
+    init_rhs[3][0] = 2;
+    init_rhs[4][0] = 6; init_rhs[4][1] = 0; init_rhs[4][2] = 7;
+    init_rhs[5][0] = 3;
+    grammar[0] = (struct prod){ .l = 0, .r = init_rhs[0], .len = 3 }; // E -> E + F
+    grammar[1] = (struct prod){ .l = 0, .r = init_rhs[1], .len = 1 };       // E -> F
+    grammar[2] = (struct prod){ .l = 1, .r = init_rhs[2], .len = 3 }; // F -> F * G
+    grammar[3] = (struct prod){ .l = 1, .r = init_rhs[3], .len = 1 };       // F -> G
+    grammar[4] = (struct prod){ .l = 2, .r = init_rhs[4], .len = 3 }; // G -> ( E )
+    grammar[5] = (struct prod){ .l = 2, .r = init_rhs[5], .len = 1 };       // G -> ID
+    initialize(number_of_symb, 0);
+}
+
+void initialize_grammar3()
+{
+    number_of_symb = 4;
+    // E ID + *
+    // 0 1 2 3
+    number_of_prod = 3;
+    init_rhs[0][0] = 0; init_rhs[0][1] = 2; init_rhs[0][2] = 0;
+    init_rhs[1][0] = 0; init_rhs[1][1] = 3; init_rhs[1][2] = 0;
+    init_rhs[2][0] = 1;
+    grammar[0] = (struct prod){ .l = 0, .r = init_rhs[0], .len = 3 }; // E -> E + E
+    grammar[1] = (struct prod){ .l = 0, .r = init_rhs[1], .len = 3 }; // E -> E * E
+    grammar[2] = (struct prod){ .l = 0, .r = init_rhs[2], .len = 1 }; // E -> ID
+    initialize(number_of_symb, 0);
+}
+
+void test_calc_first_and_follow()
+{
+    for(int i = 0; i < number_of_symb; i++)
+    {
+        printf("First(%d): ", i);
+        for(int j = 0; j < number_of_symb; j++)
+        {
+            if (first[i][j])
+                printf("%d ", j);
+        }
+        printf("\n");
+    }
+    for(int i = 0; i < number_of_symb; i++)
+    {
+        printf("Follow(%d): ", i);
+        for(int j = 0; j < number_of_symb; j++)
+        {
+            if (follow[i][j])
+                printf("%d ", j);
+        }
+        printf("\n");
+    }
+}
+
+void test_test_if_left_is_ok()
+{
+    initialize_grammar1();
+    int res1 = test_if_left_is_ok((int[]){0,2,1,2}, 0, 3);
+    int res2 = test_if_left_is_ok((int[]){0, 2, 1}, 0, 2);
+    int res3 = test_if_left_is_ok((int[]){1}, 0, 0);
+    printf("%d %d %d\n", res1, res2, res3); // expect 0 1 1
+}
+
+void test_calc_1()
+{
+    initialize_grammar1();
+    calc((int[]){1, 2, 1, 2, 1}, 5);
+    // F + F + F
+}
+
+void test_calc_2()
+{
+    initialize_grammar2();
+    calc((int[]){6, 3, 4, 3, 7, 5, 3}, 7);
+    calc((int[]){3, 4, 6, 3, 5, 3, 7}, 7);
+}
+
+void test_calc_3()
+{
+    initialize_grammar3();
+    test_calc_first_and_follow();
+    calc((int[]){1, 2, 1, 3, 1}, 5);
+}
 
 int main()
 {
-    // number_of_symb = 3;
-    // number_of_prod = 2;
-    // grammar[0] = (struct prod){ .l = 0, .r = (int[]){0, 2, 1}, .len = 3 };
-    // grammar[1] = (struct prod){ .l = 0, .r = (int[]){1}, .len = 1};
-    number_of_symb = 8; // E F G ID + * ( )
-                        // 0 1 2 3  4 5 6 7
-    number_of_prod = 6;
-    grammar[0] = (struct prod){ .l = 0, .r = (int[]){0, 4, 1}, .len = 3 }; // E -> E + F
-    grammar[1] = (struct prod){ .l = 0, .r = (int[]){1}, .len = 1 };       // E -> F
-    grammar[2] = (struct prod){ .l = 1, .r = (int[]){1, 5, 2}, .len = 3 }; // F -> F * G
-    grammar[3] = (struct prod){ .l = 1, .r = (int[]){2}, .len = 1 };       // F -> G
-    grammar[4] = (struct prod){ .l = 2, .r = (int[]){6, 0, 7}, .len = 3 }; // G -> ( E )
-    grammar[5] = (struct prod){ .l = 2, .r = (int[]){3}, .len = 1 };       // G -> ID
-    initialize(number_of_symb, 0);
-    calc((int[]){6, 3, 4, 3, 7, 5, 3}, 7);
-
-    // int res1 = test_if_left_is_ok((int[]){0,2,1,2}, 0, 3);
-    // int res2 = test_if_left_is_ok((int[]){0, 2, 1}, 0, 2);
-    // int res3 = test_if_left_is_ok((int[]){1}, 0, 0);
-    // printf("%d %d %d\n", res1, res2, res3); // expect 0 1 1
-    // printf("%d", test_if_left_is_ok((int[]){0, 4}, 0, 1));
-
-    // int res4 = test_if_left_is_ok((int[]){0, 4, 1, 4}, 0, 3);
-    // printf("%d\n", res4); // expect 1
-    // for(int i = 0; i < number_of_symb; i++)
-    // {
-    //     printf("First(%d): ", i);
-    //     for(int j = 0; j < number_of_symb; j++)
-    //     {
-    //         if (first[i][j])
-    //             printf("%d ", j);
-    //     }
-    //     printf("\n");
-    // }
-    // for(int i = 0; i < number_of_symb; i++)
-    // {
-    //     printf("Follow(%d): ", i);
-    //     for(int j = 0; j < number_of_symb; j++)
-    //     {
-    //         if (follow[i][j])
-    //             printf("%d ", j);
-    //     }
-    //     printf("\n");
-    // }
+    test_calc_2();
 }

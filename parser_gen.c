@@ -237,9 +237,9 @@ void calc(int* expr, int size)
         if (!left_is_ok)
         {
             top --;
+            int finish = 0;
             for(int i = top - 1; i >= 0; -- i)
             {
-                int finish = 0;
                 for(int j = 0; j < number_of_prod; ++ j)
                 {
                     if(grammar[j].len != (top - i))continue;
@@ -269,6 +269,11 @@ void calc(int* expr, int size)
                     }
                 }
                 if(finish)break;
+            }
+            if(!finish)
+            {
+                printf("Grammar Error! Neither reduce nor shift is ok\n");
+                return;
             }
         }
         else
@@ -311,6 +316,11 @@ void calc(int* expr, int size)
             if(grammar_error)break;
             left[top ++] = expr[pos ++];
         }
+    }
+    if(grammar_error)
+    {
+        printf("Grammar Error! Both reduce and shift is ok\n");
+        return;
     }
     for(int i = 0; i < top; ++ i)
         printf("%d ", left[i]);
