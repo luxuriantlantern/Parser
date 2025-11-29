@@ -3,15 +3,12 @@
 #include <stdio.h>
 #include <string.h>
 
-static int init_rhs[MAX_NUMBER_OF_SYMB];
+static int init_rhs[1];
 
-void initialize(int number_of_symb)
+void initialize(int number_of_symb, int start_symb)
 {
-    for(int i = 0; i < number_of_symb; i++)
-    {
-        init_rhs[i] = i;
-        grammar[i + MAX_NUMBER_OF_PROD] = (struct prod){ .l = MAX_NUMBER_OF_SYMB, .r = &init_rhs[i], .len = 1 };
-    }
+    init_rhs[0] = start_symb;
+    grammar[MAX_NUMBER_OF_PROD] = (struct prod){.l = MAX_NUMBER_OF_SYMB, .r = &init_rhs[0], .len = 1};
     memset(is_ok_first, 0, sizeof(is_ok_first));
     memset(is_ok_follow, 0, sizeof(is_ok_follow));
     for(int i = 0; i < number_of_symb; ++ i)
@@ -109,8 +106,7 @@ int test_if_left_is_ok(int *p, int start, int end)
     int vis_prod[MAX_NUMBER_OF_PROD + 1];
     int i, j;
 
-    int X = p[start];
-    cur.s[cur.size++] = (struct handler){ .prod_id = MAX_NUMBER_OF_PROD + X, .dot_pos = 0 };
+    cur.s[cur.size++] = (struct handler){ .prod_id = MAX_NUMBER_OF_PROD, .dot_pos = 0 };
 
     int changed = 1;
     while (changed)

@@ -9,7 +9,7 @@
 /* inputs: */
 int number_of_symb; /* number of symbols */
 int number_of_prod; /* number of productions */
-struct prod grammar[MAX_NUMBER_OF_SYMB + MAX_NUMBER_OF_PROD];
+struct prod grammar[MAX_NUMBER_OF_PROD + 1];
 
 /* outputs: */
 struct state state_info[MAX_NUMBER_OF_STATE];
@@ -41,8 +41,8 @@ int main()
     grammar[3] = (struct prod){ .l = 1, .r = (int[]){2}, .len = 1 };       // F -> G
     grammar[4] = (struct prod){ .l = 2, .r = (int[]){6, 0, 7}, .len = 3 }; // G -> ( E )
     grammar[5] = (struct prod){ .l = 2, .r = (int[]){3}, .len = 1 };       // G -> ID
-    initialize(number_of_symb);
-    calc((int[]){3, 5, 6, 3, 4, 3, 7}, 7);
+    initialize(number_of_symb, 0);
+    calc((int[]){6, 3, 4, 3, 7, 5, 3}, 7);
 
     // int res1 = test_if_left_is_ok((int[]){0,2,1,2}, 0, 3);
     // int res2 = test_if_left_is_ok((int[]){0, 2, 1}, 0, 2);
