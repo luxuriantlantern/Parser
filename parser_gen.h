@@ -8,8 +8,9 @@
 #include "cfg.h"
 
 extern void initialize(int number_of_symb, int start_symb);
+extern void calc_terminal();
 extern void calc_first(int symb);
-extern void calc_follow(int symb);
+extern void calc_follow();
 extern int test_if_left_is_ok(int *p, int start, int end);
 extern void calc(int* expr, int size);
 
@@ -28,6 +29,7 @@ extern int is_ok_first[MAX_NUMBER_OF_SYMB];
 extern int is_ok_follow[MAX_NUMBER_OF_SYMB];
 extern int vis_first[MAX_NUMBER_OF_SYMB];
 extern int vis_follow[MAX_NUMBER_OF_SYMB];
+extern int is_terminal[MAX_NUMBER_OF_SYMB];
 
 
 #endif //PARSER_GEN_H

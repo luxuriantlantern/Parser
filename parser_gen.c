@@ -11,10 +11,20 @@ void initialize(int number_of_symb, int start_symb)
     grammar[MAX_NUMBER_OF_PROD] = (struct prod){.l = MAX_NUMBER_OF_SYMB, .r = &init_rhs[0], .len = 1};
     memset(is_ok_first, 0, sizeof(is_ok_first));
     memset(is_ok_follow, 0, sizeof(is_ok_follow));
+    calc_terminal();
     for(int i = 0; i < number_of_symb; ++ i)
         calc_first(i);
-    for(int i = 1; i < number_of_symb; ++ i)
-        calc_follow(i);
+    calc_follow();
+}
+
+void calc_terminal()
+{
+    for(int i = 0; i < number_of_symb; i++)is_terminal[i] = 1;
+    for(int i = 0; i < number_of_prod; i++)
+    {
+        struct prod *p = &grammar[i];
+        is_terminal[p->l] = 0;
+    }
 }
 
 void calc_first(int symb)
@@ -22,18 +32,11 @@ void calc_first(int symb)
     if (is_ok_first[symb])
         return;
     vis_first[symb] = 1;
-    int is_terminal = 1;
-    for(int i = 0; i < number_of_prod; i++)
+    if (is_terminal[symb])
     {
-        struct prod *p = &grammar[i];
-        if (p->l == symb)
-        {
-            is_terminal = 0;
-            break;
-        }
-    }
-    if (is_terminal)
         first[symb][symb] = 1;
+        return;
+    }
     for(int i = 0; i < number_of_prod; i++)
     {
         struct prod *p = &grammar[i];
@@ -56,42 +59,45 @@ void calc_first(int symb)
     is_ok_first[symb] = 1;
 }
 
-void calc_follow(int symb)
+void calc_follow()
 {
-    if (is_ok_follow[symb])
-        return;
-    vis_follow[symb] = 1;
-    for(int i = 0; i < number_of_prod; i++)
+    int changed = 1;
+    while (changed)
     {
-        struct prod *p = &grammar[i];
-        for(int j = 0; j < p->len - 1; j++)
+        changed = 0;
+        for (int i = 0; i < number_of_prod; i++)
         {
-            int U = p->r[j], V = p->r[j + 1];
-            if (U == symb)
+            struct prod *p = &grammar[i];
+            int left = p->l;
+            for (int j = 0; j < p->len; j++)
             {
-                for(int k = 0; k < number_of_symb; k++)
+                int U = p->r[j];
+                if (j < p->len - 1)
                 {
-                    if (first[V][k])
-                        follow[symb][k] = 1;
+                    int V = p->r[j + 1];
+                    for (int k = 0; k < number_of_symb; k++)
+                    {
+                        if (first[V][k] && !follow[U][k])
+                        {
+                            follow[U][k] = 1;
+                            changed = 1;
+                        }
+                    }
                 }
-            }
-        }
-        for(int j = 0; j < p->len; j++)
-        {
-            int U = p->r[j];
-            if (U == symb)
-            {
-                if(!vis_follow[p->l])
-                    calc_follow(p->l);
-                for(int k = 0; k < number_of_symb; k++)
+                if (j == p->len - 1)
                 {
-                    if (follow[p->l][k])
-                        follow[symb][k] = 1;
+                    for (int k = 0; k < number_of_symb; k++)
+                    {
+                        if (follow[left][k] && !follow[U][k])
+                        {
+                            follow[U][k] = 1;
+                            changed = 1;
+                        }
+                    }
                 }
             }
         }
     }
-    is_ok_follow[symb] = 1;
 }
 
 int test_if_left_is_ok(int *p, int start, int end)
@@ -219,7 +225,7 @@ void calc(int* expr, int size)
     left[top ++] = expr[0];
     int pos = 1;
     int cnt = 0;
-    printf("|");
+    printf("| ");
     for(int i = 0; i < size; ++ i)
         printf("%d ", expr[i]);
     printf("\n");
@@ -228,7 +234,7 @@ void calc(int* expr, int size)
     {
         for(int i = 0; i < top; ++ i)
             printf("%d ", left[i]);
-        printf("|");
+        printf("| ");
         for(int i = pos; i < size; ++ i)
             printf("%d ", expr[i]);
         printf("\n");
@@ -324,7 +330,7 @@ void calc(int* expr, int size)
     }
     for(int i = 0; i < top; ++ i)
         printf("%d ", left[i]);
-    printf("|\n");
+    printf("| \n");
     int change = 1;
     while(change)
     {
@@ -367,8 +373,8 @@ void calc(int* expr, int size)
         {
             for(int i = 0; i < top; ++ i)
                 printf("%d ", left[i]);
-            printf("|\n");
+            printf("| \n");
         }
     }
-    printf("%d|\n", MAX_NUMBER_OF_SYMB);
+    printf("%d | \n", MAX_NUMBER_OF_SYMB);
 }

@@ -21,6 +21,7 @@ int is_ok_first[MAX_NUMBER_OF_SYMB];
 int is_ok_follow[MAX_NUMBER_OF_SYMB];
 int vis_first[MAX_NUMBER_OF_SYMB];
 int vis_follow[MAX_NUMBER_OF_SYMB];
+int is_terminal[MAX_NUMBER_OF_SYMB];
 
 static int init_rhs[MAX_NUMBER_OF_PROD][MAX_NUMBER_OF_STATE];
 
@@ -73,6 +74,25 @@ void initialize_grammar3()
     initialize(number_of_symb, 0);
 }
 
+void initialize_grammar4()
+{
+    number_of_symb = 6;
+    // L E F ID , +
+    // 0 1 2 3  4 5
+    number_of_prod = 5;
+    init_rhs[0][0] = 1;
+    init_rhs[1][0] = 0; init_rhs[1][1] = 4; init_rhs[1][2] = 1;
+    init_rhs[2][0] = 1; init_rhs[2][1] = 5; init_rhs[2][2] = 2;
+    init_rhs[3][0] = 2;
+    init_rhs[4][0] = 3;
+    grammar[0] = (struct prod){ .l = 0, .r = init_rhs[0], .len = 1 }; // L -> E
+    grammar[1] = (struct prod){ .l = 0, .r = init_rhs[1], .len = 3 }; // L -> L , E
+    grammar[2] = (struct prod){ .l = 1, .r = init_rhs[2], .len = 3 }; // E -> E + F
+    grammar[3] = (struct prod){ .l = 1, .r = init_rhs[3], .len = 1 }; // E -> F
+    grammar[4] = (struct prod){ .l = 2, .r = init_rhs[4], .len = 1 }; // F -> ID
+    initialize(number_of_symb, 0);
+}
+
 void test_calc_first_and_follow()
 {
     for(int i = 0; i < number_of_symb; i++)
@@ -87,6 +107,7 @@ void test_calc_first_and_follow()
     }
     for(int i = 0; i < number_of_symb; i++)
     {
+        if(is_terminal[i])continue;
         printf("Follow(%d): ", i);
         for(int j = 0; j < number_of_symb; j++)
         {
@@ -109,6 +130,7 @@ void test_test_if_left_is_ok()
 void test_calc_1()
 {
     initialize_grammar1();
+    test_calc_first_and_follow();
     calc((int[]){1, 2, 1, 2, 1}, 5);
     // F + F + F
 }
@@ -116,8 +138,9 @@ void test_calc_1()
 void test_calc_2()
 {
     initialize_grammar2();
-    calc((int[]){6, 3, 4, 3, 7, 5, 3}, 7);
-    calc((int[]){3, 4, 6, 3, 5, 3, 7}, 7);
+    // calc((int[]){6, 3, 4, 3, 7, 5, 3}, 7);
+    // calc((int[]){3, 4, 6, 3, 5, 3, 7}, 7);
+    calc((int[]){3, 5, 6, 3, 4, 3, 7}, 7);
 }
 
 void test_calc_3()
@@ -127,7 +150,19 @@ void test_calc_3()
     calc((int[]){1, 2, 1, 3, 1}, 5);
 }
 
+void test_calc_4()
+{
+    initialize_grammar4();
+    calc((int[]){3,5,3,4,3,4,3,5,3}, 9);
+}
+
+void test_calc_5()
+{
+    initialize_grammar1();
+    calc((int[]){1, 2, 2}, 3);
+}
+
 int main()
 {
-    test_calc_2();
+    test_calc_4();
 }
