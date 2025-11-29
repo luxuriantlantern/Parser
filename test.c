@@ -159,10 +159,10 @@ void test_calc_4()
 void test_calc_5()
 {
     initialize_grammar1();
-    calc((int[]){1, 2, 2}, 3);
+    calc((int[]){1, 2}, 2);
 }
 
 int main()
 {
-    test_calc_4();
+    test_calc_5();
 }

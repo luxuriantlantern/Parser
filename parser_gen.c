@@ -221,6 +221,11 @@ int test_if_left_is_ok(int *p, int start, int end)
 
 void calc(int* expr, int size)
 {
+    if(size == 0)
+    {
+        printf("|");
+        return;
+    }
     int left[MAX_NUMBER_OF_STATE], top = 0;
     left[top ++] = expr[0];
     int pos = 1;
@@ -375,6 +380,11 @@ void calc(int* expr, int size)
                 printf("%d ", left[i]);
             printf("| \n");
         }
+    }
+    if(top > 1)
+    {
+        printf("Grammar Error! Neither reduce nor shift is ok\n");
+        return;
     }
     printf("%d | \n", MAX_NUMBER_OF_SYMB);
 }
