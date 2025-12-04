@@ -13,15 +13,15 @@ struct prod grammar[MAX_NUMBER_OF_PROD + 1];
 
 /* outputs: */
 struct state state_info[MAX_NUMBER_OF_STATE];
-struct trans_result trans[MAX_NUMBER_OF_STATE][MAX_NUMBER_OF_SYMB];
+struct trans_result trans[MAX_NUMBER_OF_STATE][MAX_NUMBER_OF_SYMB + 2];
 
 int first[MAX_NUMBER_OF_SYMB][MAX_NUMBER_OF_SYMB];
-int follow[MAX_NUMBER_OF_SYMB][MAX_NUMBER_OF_SYMB];
+int follow[MAX_NUMBER_OF_SYMB][MAX_NUMBER_OF_SYMB + 2];
 int is_ok_first[MAX_NUMBER_OF_SYMB];
 int is_ok_follow[MAX_NUMBER_OF_SYMB];
 int vis_first[MAX_NUMBER_OF_SYMB];
 int vis_follow[MAX_NUMBER_OF_SYMB];
-int is_terminal[MAX_NUMBER_OF_SYMB];
+int is_terminal[MAX_NUMBER_OF_SYMB + 2];
 
 static int init_rhs[MAX_NUMBER_OF_PROD][MAX_NUMBER_OF_STATE];
 
@@ -93,76 +93,139 @@ void initialize_grammar4()
     initialize(number_of_symb, 0);
 }
 
-void test_calc_first_and_follow()
-{
-    for(int i = 0; i < number_of_symb; i++)
-    {
-        printf("First(%d): ", i);
-        for(int j = 0; j < number_of_symb; j++)
-        {
-            if (first[i][j])
-                printf("%d ", j);
-        }
-        printf("\n");
-    }
-    for(int i = 0; i < number_of_symb; i++)
-    {
-        if(is_terminal[i])continue;
-        printf("Follow(%d): ", i);
-        for(int j = 0; j < number_of_symb; j++)
-        {
-            if (follow[i][j])
-                printf("%d ", j);
-        }
-        printf("\n");
-    }
-}
 
-void test_test_if_left_is_ok()
+void calc_example(int* expr, int size)
 {
-    initialize_grammar1();
-    int res1 = test_if_left_is_ok((int[]){0,2,1,2}, 0, 3);
-    int res2 = test_if_left_is_ok((int[]){0, 2, 1}, 0, 2);
-    int res3 = test_if_left_is_ok((int[]){1}, 0, 0);
-    printf("%d %d %d\n", res1, res2, res3); // expect 0 1 1
+    int left[10005];
+    int symbol_top = 0;
+    int state_stack[10005];
+    int state_top = 0;
+    int input_index = 0;
+
+    state_stack[state_top++] = 0;
+
+    while(1)
+    {
+        for(int i = 0; i < symbol_top; ++ i)
+            printf("%d ", left[i]);
+        printf("| ");
+        for(int i = input_index; i < size; ++ i)
+            printf("%d ", expr[i]);
+
+        int current_state = state_stack[state_top - 1];
+        int lookahead;
+
+        if (input_index < size) {
+            lookahead = expr[input_index];
+        } else {
+            lookahead = EOF_SYMBOL_ID;
+        }
+
+        struct trans_result current_action = trans[current_state][lookahead];
+
+        if(current_action.t == 0)
+        {
+            if (lookahead == EOF_SYMBOL_ID) {
+                break;
+            }
+
+            printf("Action: Shift to state %d\n", current_action.id);
+            left[symbol_top ++] = lookahead;
+            state_stack[state_top ++] = current_action.id;
+            input_index ++;
+        }
+        else if (current_action.t == 1)
+        {
+            int prod_id = current_action.id;
+            struct prod *p = &grammar[prod_id];
+            int A = p->l;
+            int len = p->len;
+
+            printf("Action: Reduce using production %d (%d -> ", prod_id, A);
+            for(int i = 0; i < len; ++ i)
+                printf("%d ", p->r[i]);
+            printf(")\n");
+
+            symbol_top -= len;
+            state_top -= len;
+
+            left[symbol_top ++] = A;
+
+            int new_stack_top_state = state_stack[state_top - 1];
+            struct trans_result goto_res = trans[new_stack_top_state][A];
+
+            state_stack[state_top ++] = goto_res.id;
+        }
+        else if (current_action.t == 2)
+        {
+            printf("Action: ACCEPT\n");
+            return;
+        }
+        else
+        {
+            printf("Action: ERROR (State %d, Symbol %d)\n", current_state, lookahead);
+            break;
+        }
+    }
 }
 
 void test_calc_1()
 {
     initialize_grammar1();
-    test_calc_first_and_follow();
-    calc((int[]){1, 2, 1, 2, 1}, 5);
-    // F + F + F
+    calc_trans();
+    display_trans();
+    printf("\nExample Calculation1(OK):\n");
+    calc_example((int[]){1, 2, 1, 2, 1}, 5);
+    printf("\nExample Calculation2(Error):\n");
+    calc_example((int[]){1, 2, 2}, 3);
 }
 
 void test_calc_2()
 {
     initialize_grammar2();
-    // calc((int[]){6, 3, 4, 3, 7, 5, 3}, 7);
-    // calc((int[]){3, 4, 6, 3, 5, 3, 7}, 7);
-    calc((int[]){3, 5, 6, 3, 4, 3, 7}, 7);
+    calc_trans();
+    display_trans();
+    printf("\nExample Calculation1(OK):\n");
+    calc_example((int[]){6, 3, 4, 3, 7, 5, 3}, 7);
+    printf("\nExample Calculation2(Error):\n");
+    calc_example((int[]){3, 4, 3, 6}, 4);
 }
 
 void test_calc_3()
 {
     initialize_grammar3();
-    test_calc_first_and_follow();
-    calc((int[]){1, 2, 1, 3, 1}, 5);
+    calc_trans();
+    display_trans();
 }
 
 void test_calc_4()
 {
     initialize_grammar4();
-    calc((int[]){3,5,3,4,3,4,3,5,3}, 9);
+    calc_trans();
+    display_trans();
+    printf("\nExample Calculation1(OK):\n");
+    calc_example((int[]){3, 5, 3, 4, 3, 4, 3, 5, 3}, 9);
+    printf("\nExample Calculation2(Error):\n");
+    calc_example((int[]){3, 5, 3, 4}, 4);
 }
 
-void test_calc_5()
+void display_follow()
 {
-    initialize_grammar1();
-    calc((int[]){1, 2}, 2);
+    for(int i = 0; i < number_of_symb; ++ i)
+    {
+        printf("Follow(%d): ", i);
+        for(int j = 0; j < number_of_symb + 2; ++ j)
+        {
+            if(follow[i][j])
+                printf("%d ", j);
+        }
+        if(follow[i][EOF_SYMBOL_ID])
+            printf("$");
+        printf("\n");
+    }
 }
 
 int main()
 {
-    test_calc_5();
+    test_calc_4();
 }
