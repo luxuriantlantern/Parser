@@ -227,5 +227,5 @@ void display_follow()
 
 int main()
 {
-    test_calc_4();
+    test_calc_1();
 }
